@@ -1,0 +1,38 @@
+{
+  "version": "2",
+  "sql": [
+    {
+      "engine": "postgresql",
+      "queries": "asset/sql/query",
+      "schema": "asset/sql/schema",
+      "strict_function_checks": true,
+      "gen": {
+        "go": {
+          "package": "query",
+          "out": "store/internal/query",
+          "sql_package": "pgx/v5",
+          "emit_json_tags": false,
+          "overrides": [
+            {
+              "db_type": "uuid",
+              "go_type": {
+                "import": "github.com/google/uuid",
+                "package": "uuid",
+                "type": "UUID"
+              }
+            },
+            {
+              "db_type": "uuid",
+              "nullable": true,
+              "go_type": {
+                "import": "github.com/google/uuid",
+                "package": "uuid",
+                "type": "NullUUID"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

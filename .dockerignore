@@ -1,0 +1,15 @@
+# base
+.idea
+.git
+.gitignore
+.dockerignore
+# folders
+asset
+# files
+Dockerfile
+Makefile
+README.md
+sqlc.json
+# migration
+.env
+migrate.sh
