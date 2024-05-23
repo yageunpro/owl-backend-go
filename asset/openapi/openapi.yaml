@@ -6,51 +6,13 @@ servers:
   - url: http://127.0.0.1:8000
     description: dev server
 paths:
-  /auth/oauth/naver:
-    get:
-      tags:
-        - auth
-      summary: Auth Oauth Naver
-      description: "\uB124\uC774\uBC84 oauth request, \uC790\uB3D9 \uAC00\uC785 &\
-        \ \uB85C\uADF8\uC778 \uCC98\uB9AC"
-      operationId: auth_oauth_naver_auth_oauth_naver_get
-      parameters:
-        - name: ref
-          in: query
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Ref
-      responses:
-        '307':
-          description: Successful Response
-        '401':
-          description: Authentication Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrAuthFail'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrValidationFail'
-        '500':
-          description: Unexpected Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrUnexpected'
   /auth/oauth/google:
     get:
       tags:
         - auth
       summary: Auth Oauth Google
-      description: "\uAD6C\uAE00 oauth request, \uC790\uB3D9 \uAC00\uC785 & \uB85C\
-        \uADF8\uC778 \uCC98\uB9AC"
+      description: "\uAD6C\uAE00 oauth req, ref \uAC12\uC73C\uB85C redirect \uB420\
+        \ \uD398\uC774\uC9C0 \uC124\uC815 \uAC00\uB2A5"
       operationId: auth_oauth_google_auth_oauth_google_get
       parameters:
         - name: ref
@@ -61,63 +23,6 @@ paths:
               - type: string
               - type: 'null'
             title: Ref
-      responses:
-        '307':
-          description: Successful Response
-        '401':
-          description: Authentication Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrAuthFail'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrValidationFail'
-        '500':
-          description: Unexpected Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrUnexpected'
-  /auth/callback/naver:
-    get:
-      tags:
-        - auth
-      summary: Auth Callback Naver
-      description: "\uB124\uC774\uBC84 oauth callback (server-side)"
-      operationId: auth_callback_naver_auth_callback_naver_get
-      parameters:
-        - name: code
-          in: query
-          required: true
-          schema:
-            type: string
-            title: Code
-        - name: state
-          in: query
-          required: true
-          schema:
-            type: string
-            title: State
-        - name: error
-          in: query
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Error
-        - name: error_description
-          in: query
-          required: false
-          schema:
-            anyOf:
-              - type: string
-              - type: 'null'
-            title: Error Description
       responses:
         '307':
           description: Successful Response
@@ -331,18 +236,21 @@ paths:
               - DELETE
             type: string
             title: Type
-        - name: page
+        - name: page_token
           in: query
           required: false
           schema:
-            type: integer
-            default: 1
-            title: Page
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Page Token
         - name: limit
           in: query
           required: false
           schema:
-            type: integer
+            anyOf:
+              - type: integer
+              - type: 'null'
             default: 10
             title: Limit
       responses:
@@ -351,10 +259,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AbstractAppointment'
-                title: Response Appointment List Appointment List Get
+                $ref: '#/components/schemas/AppointmentListRO'
         '401':
           description: Authentication Error
           content:
@@ -640,7 +545,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppointmentJoinNonmember'
+              $ref: '#/components/schemas/JoinNonmemberRQ'
       responses:
         '200':
           description: Successful Response
@@ -759,7 +664,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppointmentConfirm'
+              $ref: '#/components/schemas/AppointmentConfirmRQ'
       responses:
         '200':
           description: Successful Response
@@ -915,7 +820,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2024-05-13T15:01:54.580311'
+            default: '2024-05-23T17:14:39.146691'
             title: Start
         - name: end
           in: query
@@ -923,20 +828,23 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2025-05-13T15:01:54.580315'
+            default: '2025-05-23T17:14:39.146698'
             title: End
-        - name: page
+        - name: page_token
           in: query
           required: false
           schema:
-            type: integer
-            default: 1
-            title: Page
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Page Token
         - name: limit
           in: query
           required: false
           schema:
-            type: integer
+            anyOf:
+              - type: integer
+              - type: 'null'
             default: 10
             title: Limit
       responses:
@@ -945,10 +853,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Schedule'
-                title: Response Calendar Schedule List Calendar Schedule List Get
+                $ref: '#/components/schemas/ScheduleListRO'
         '401':
           description: Authentication Error
           content:
@@ -1002,6 +907,53 @@ paths:
       security:
         - AccessToken: []
         - RefreshToken: []
+  /location:
+    get:
+      tags:
+        - location
+      summary: Location Get
+      operationId: location_get_location_get
+      security:
+        - AccessToken: []
+        - RefreshToken: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            minItems: 1
+            title: Q
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Location'
+                title: Response Location Get Location Get
+        '401':
+          description: Authentication Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrAuthFail'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrValidationFail'
+        '500':
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrUnexpected'
   /user/me:
     get:
       tags:
@@ -1087,8 +1039,8 @@ paths:
           required: true
           schema:
             enum:
-              - naver
               - google
+            const: google
             type: string
             title: Type
       responses:
@@ -1207,18 +1159,21 @@ components:
           format: uuid
           title: Id
           description: "\uC57D\uC18D \uC2DD\uBCC4\uC790"
+        organizer_id:
+          type: string
+          format: uuid
+          title: Organizer Id
+          description: "\uC57D\uC18D \uC8FC\uCD5C\uC790"
         title:
           type: string
           title: Title
           description: "\uC57D\uC18D \uC774\uB984"
-        locaction:
-          type: string
-          title: Locaction
-          description: "\uAC04\uB7B5\uD55C \uC7A5\uC18C \uC815\uBCF4"
-        headcount:
-          type: integer
-          title: Headcount
-          description: "\uCC38\uAC00\uD558\uB294 \uC778\uC6D0 \uC218"
+          examples:
+            - "\uC57D\uC18D \uC608\uC81C"
+        location:
+          allOf:
+            - $ref: '#/components/schemas/Location'
+          description: "\uC7A5\uC18C"
         status:
           type: string
           enum:
@@ -1235,16 +1190,21 @@ components:
               format: date-time
             - type: 'null'
           title: Confirmtime
-          description: "\uCD5C\uC885 \uD655\uC815\uB41C \uC2DC\uAC04, CONFIRM \uC0C1\
-            \uD0DC\uC5D0\uB9CC \uC874\uC7AC"
+          description: "\uCD5C\uC885 \uD655\uC815\uB41C \uC2DC\uAC04, CONFIRM/DONE\
+            \ \uC0C1\uD0DC\uC5D0\uB9CC \uC874\uC7AC"
+        headCount:
+          type: integer
+          title: Headcount
+          description: "\uCC38\uAC00\uD558\uB294 \uC778\uC6D0 \uC218"
       type: object
       required:
         - id
+        - organizer_id
         - title
-        - locaction
-        - headcount
+        - location
         - status
         - confirmTime
+        - headCount
       title: AbstractAppointment
     Account:
       properties:
@@ -1256,12 +1216,10 @@ components:
         type:
           type: string
           enum:
-            - NAVER
             - GOOGLE
-            - ETC
+            - OWL
           title: Type
-          description: "\uACC4\uC815 \uC885\uB958 [\uB124\uC774\uBC84, \uAD6C\uAE00\
-            , \uAE30\uD0C0]"
+          description: "\uACC4\uC815 \uC885\uB958 [\uAD6C\uAE00, \uC790\uCCB4]"
         email:
           type: string
           format: email
@@ -1295,41 +1253,36 @@ components:
           description: "\uC57D\uC18D \uC124\uBA85"
           examples:
             - "\uBB54\uAC00 \uC5C4\uCCAD\uB09C \uC124\uBA85"
-        location:
+        location_id:
           anyOf:
-            - $ref: '#/components/schemas/Location'
+            - type: string
+              format: uuid
             - type: 'null'
+          title: Location Id
           description: "\uC7A5\uC18C"
-        keywordList:
+        categoryList:
           items:
             type: string
           type: array
-          title: Keywordlist
-          description: "\uD0A4\uC6CC\uB4DC"
+          title: Categorylist
+          description: "\uCE74\uD14C\uACE0\uB9AC"
           examples:
-            - - "\uD648\uD30C\uD2F0"
-              - "\uC220"
-              - "\uACE0\uAE30!"
-        startTime:
+            - - "\uAE40\uCE58"
+              - "\uC22D\uC2E4\uB300"
+        deadline:
           type: string
           format: date-time
-          title: Starttime
-          description: "\uC2DC\uC791\uC2DC\uAC04"
-        endTime:
-          type: string
-          format: date-time
-          title: Endtime
-          description: "\uB05D\uB098\uB294 \uC2DC\uAC04"
+          title: Deadline
+          description: "\uB9C8\uAC10\uC2DC\uAC04"
       type: object
       required:
         - title
         - description
-        - location
-        - keywordList
-        - startTime
-        - endTime
+        - location_id
+        - categoryList
+        - deadline
       title: AppointmentAddRQ
-    AppointmentConfirm:
+    AppointmentConfirmRQ:
       properties:
         time:
           type: string
@@ -1339,7 +1292,7 @@ components:
       type: object
       required:
         - time
-      title: AppointmentConfirm
+      title: AppointmentConfirmRQ
     AppointmentEditRQ:
       properties:
         title:
@@ -1358,47 +1311,46 @@ components:
           description: "\uC57D\uC18D \uC124\uBA85"
           examples:
             - "\uC124\uBA85 \uC218\uC815"
-        location:
+        location_id:
           anyOf:
-            - $ref: '#/components/schemas/Location'
+            - type: string
+              format: uuid
             - type: 'null'
+          title: Location Id
           description: "\uC7A5\uC18C"
-        keywordList:
-          anyOf:
-            - items:
-                type: string
-              type: array
-            - type: 'null'
-          title: Keywordlist
-          description: "\uD0A4\uC6CC\uB4DC"
+        categoryList:
+          items:
+            type: string
+          type: array
+          title: Categorylist
+          description: "\uCE74\uD14C\uACE0\uB9AC"
           examples:
-            - - "\uD0A4\uC6CC\uB4DC"
-              - "\uC218\uC815"
-              - "\uC804\uCCB4\uBCF4\uB0B4\uAE30"
+            - - "\uAE40\uCE58"
+              - "\uC22D\uC2E4\uB300"
       type: object
       required:
         - title
         - description
-        - location
-        - keywordList
+        - location_id
+        - categoryList
       title: AppointmentEditRQ
-    AppointmentJoinNonmember:
+    AppointmentListRO:
       properties:
-        username:
-          type: string
-          title: Username
-          description: "\uC774\uB984"
-        scheduleList:
+        data:
           items:
-            $ref: '#/components/schemas/Schedule'
+            $ref: '#/components/schemas/AbstractAppointment'
           type: array
-          title: Schedulelist
-          description: "\uC77C\uC815 \uB9AC\uC2A4\uD2B8"
+          title: Data
+          description: "\uB370\uC774\uD130"
+        nextToken:
+          type: string
+          title: Nexttoken
+          description: "pagination \uC744 \uC704\uD55C token"
       type: object
       required:
-        - username
-        - scheduleList
-      title: AppointmentJoinNonmember
+        - data
+        - nextToken
+      title: AppointmentListRO
     AppointmentRO:
       properties:
         id:
@@ -1406,41 +1358,21 @@ components:
           format: uuid
           title: Id
           description: "\uC57D\uC18D \uC2DD\uBCC4\uC790"
+        organizer_id:
+          type: string
+          format: uuid
+          title: Organizer Id
+          description: "\uC57D\uC18D \uC8FC\uCD5C\uC790"
         title:
           type: string
           title: Title
           description: "\uC57D\uC18D \uC774\uB984"
           examples:
             - "\uC57D\uC18D \uC608\uC81C"
-        description:
-          type: string
-          title: Description
-          description: "\uC57D\uC18D \uC124\uBA85"
-          examples:
-            - "\uBB54\uAC00 \uC5C4\uCCAD\uB09C \uC124\uBA85"
         location:
           allOf:
             - $ref: '#/components/schemas/Location'
           description: "\uC7A5\uC18C"
-        keywordList:
-          items:
-            type: string
-          type: array
-          title: Keywordlist
-          description: "\uD0A4\uC6CC\uB4DC"
-          examples:
-            - - "\uD648\uD30C\uD2F0"
-              - "\uC220"
-              - "\uACE0\uAE30!"
-        participantList:
-          items:
-            type: string
-          type: array
-          title: Participantlist
-          description: "\uCC38\uAC00\uC790 \uB9AC\uC2A4\uD2B8"
-          examples:
-            - - "\uD64D\uAE38\uB3D9"
-              - "\uAE40\uC544\uBB34\uAC1C"
         status:
           type: string
           enum:
@@ -1451,36 +1383,52 @@ components:
             - DELETE
           title: Status
           description: "\uC57D\uC18D \uC0C1\uD0DC"
-        startTime:
-          type: string
-          format: date-time
-          title: Starttime
-          description: "\uC2DC\uC791\uC2DC\uAC04"
-        endTime:
-          type: string
-          format: date-time
-          title: Endtime
-          description: "\uB05D\uB098\uB294 \uC2DC\uAC04"
         confirmTime:
           anyOf:
             - type: string
               format: date-time
             - type: 'null'
           title: Confirmtime
-          description: "\uCD5C\uC885 \uD655\uC815\uB41C \uC2DC\uAC04, CONFIRM \uC0C1\
-            \uD0DC\uC5D0\uB9CC \uC874\uC7AC"
+          description: "\uCD5C\uC885 \uD655\uC815\uB41C \uC2DC\uAC04, CONFIRM/DONE\
+            \ \uC0C1\uD0DC\uC5D0\uB9CC \uC874\uC7AC"
+        description:
+          type: string
+          title: Description
+          description: "\uC57D\uC18D \uC124\uBA85"
+          examples:
+            - "\uBB54\uAC00 \uC5C4\uCCAD\uB09C \uC124\uBA85"
+        categoryList:
+          items:
+            type: string
+          type: array
+          title: Categorylist
+          description: "\uCE74\uD14C\uACE0\uB9AC"
+          examples:
+            - - "\uAE40\uCE58"
+              - "\uC22D\uC2E4\uB300"
+        participantList:
+          items:
+            $ref: '#/components/schemas/Participant'
+          type: array
+          title: Participantlist
+          description: "\uCC38\uAC00\uC790 \uB9AC\uC2A4\uD2B8"
+        deadline:
+          type: string
+          format: date-time
+          title: Deadline
+          description: "\uB9C8\uAC10\uC2DC\uAC04"
       type: object
       required:
         - id
+        - organizer_id
         - title
-        - description
         - location
-        - keywordList
-        - participantList
         - status
-        - startTime
-        - endTime
         - confirmTime
+        - description
+        - categoryList
+        - participantList
+        - deadline
       title: AppointmentRO
     AuthSignInRO:
       properties:
@@ -1609,20 +1557,42 @@ components:
         - message
       title: ErrValidationFail
       description: http code 422
+    JoinNonmemberRQ:
+      properties:
+        username:
+          type: string
+          title: Username
+          description: "\uC774\uB984"
+        scheduleList:
+          items:
+            $ref: '#/components/schemas/Schedule'
+          type: array
+          title: Schedulelist
+          description: "\uC77C\uC815 \uB9AC\uC2A4\uD2B8"
+      type: object
+      required:
+        - username
+        - scheduleList
+      title: JoinNonmemberRQ
     Location:
       properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: "\uC7A5\uC18C \uC2DD\uBCC4\uC790"
         title:
           type: string
           title: Title
-          description: "\uC7A5\uC18C \uC774\uB984"
+          description: "\uC7A5\uC18C \uC774\uB984, from naver"
         address:
           type: string
           title: Address
-          description: "\uC7A5\uC18C \uC8FC\uC18C"
+          description: "\uC7A5\uC18C \uC8FC\uC18C, from naver"
         category:
           type: string
           title: Category
-          description: "\uC7A5\uC18C \uCE74\uD14C\uACE0\uB9AC"
+          description: "\uC7A5\uC18C \uCE74\uD14C\uACE0\uB9AC, from naver"
         position:
           items:
             type: integer
@@ -1631,11 +1601,28 @@ components:
           description: "\uC7A5\uC18C mapx, mapy"
       type: object
       required:
+        - id
         - title
         - address
         - category
         - position
       title: Location
+    Participant:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: "\uCC38\uAC00\uC790 \uC2DD\uBCC4\uC790"
+        name:
+          type: string
+          title: Name
+          description: "\uCC38\uAC00\uC790 \uC774\uB984"
+      type: object
+      required:
+        - id
+        - name
+      title: Participant
     Schedule:
       properties:
         id:
@@ -1664,6 +1651,23 @@ components:
         - startTime
         - endTime
       title: Schedule
+    ScheduleListRO:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/Schedule'
+          type: array
+          title: Data
+          description: "\uB370\uC774\uD130"
+        nextToken:
+          type: string
+          title: Nexttoken
+          description: pagination token
+      type: object
+      required:
+        - data
+        - nextToken
+      title: ScheduleListRO
     UserAccountRO:
       properties:
         accountList:
