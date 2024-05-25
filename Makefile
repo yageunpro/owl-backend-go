@@ -12,6 +12,9 @@ vendor:
 	@go mod tidy
 	@go mod vendor
 
+run:
+	air
+
 env:
 	@echo 'export GOOSE_DRIVER=postgres' >> .env
 	@echo 'export GOOSE_DBSTRING="host=host password=password user=user dbname=name search_path=public sslmode=disable"' >> .env
