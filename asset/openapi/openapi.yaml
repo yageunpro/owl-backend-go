@@ -3,17 +3,22 @@ info:
   title: Owl API
   version: 0.0.1-alpha
 servers:
+  - url: https://yageun.pro
+    description: prod server
   - url: http://127.0.0.1:8000
     description: dev server
 paths:
-  /auth/oauth/google:
+  /api/auth/oauth/google:
     get:
       tags:
         - auth
       summary: Auth Oauth Google
       description: "\uAD6C\uAE00 oauth req, ref \uAC12\uC73C\uB85C redirect \uB420\
         \ \uD398\uC774\uC9C0 \uC124\uC815 \uAC00\uB2A5"
-      operationId: auth_oauth_google_auth_oauth_google_get
+      operationId: auth_oauth_google_api_auth_oauth_google_get
+      security:
+        - AccessToken: []
+        - RefreshToken: []
       parameters:
         - name: ref
           in: query
@@ -44,13 +49,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /auth/callback/google:
+  /api/auth/callback/google:
     get:
       tags:
         - auth
       summary: Auth Callback Google
       description: "\uAD6C\uAE00 oauth callback (server-side)"
-      operationId: auth_callback_google_auth_callback_google_get
+      operationId: auth_callback_google_api_auth_callback_google_get
       responses:
         '307':
           description: Successful Response
@@ -72,13 +77,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /auth/dev/signup:
+      security:
+        - AccessToken: []
+        - RefreshToken: []
+  /api/auth/dev/signup:
     post:
       tags:
         - auth
       summary: Auth Signup
       description: "\uD68C\uC6D0\uAC00\uC785"
-      operationId: auth_signup_auth_dev_signup_post
+      operationId: auth_signup_api_auth_dev_signup_post
       requestBody:
         content:
           application/json:
@@ -121,13 +129,16 @@ paths:
                   value:
                     errorId: ErrEmailDuplicated
                     message: Detail information
-  /auth/dev/signin:
+      security:
+        - AccessToken: []
+        - RefreshToken: []
+  /api/auth/dev/signin:
     post:
       tags:
         - auth
       summary: Auth Signin
       description: "\uB85C\uADF8\uC778"
-      operationId: auth_signin_auth_dev_signin_post
+      operationId: auth_signin_api_auth_dev_signin_post
       requestBody:
         content:
           application/json:
@@ -164,13 +175,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /appointment:
+      security:
+        - AccessToken: []
+        - RefreshToken: []
+  /api/appointment:
     post:
       tags:
         - appointment
       summary: Appointment Add
       description: "\uC57D\uC18D \uCD94\uAC00"
-      operationId: appointment_add_appointment_post
+      operationId: appointment_add_api_appointment_post
       requestBody:
         content:
           application/json:
@@ -204,7 +218,7 @@ paths:
       security:
         - AccessToken: []
         - RefreshToken: []
-  /appointment/list:
+  /api/appointment/list:
     get:
       tags:
         - appointment
@@ -219,7 +233,7 @@ paths:
         \ (\uD655\uC815\uC2DC\uAC04) \uAE30\uC900 \uC784\uBC15\uD55C \uC57D\uC18D\uBD80\
         \uD130\n\n            [\uC644\uB8CC]: time (\uD655\uC815\uC2DC\uAC04) \uAE30\
         \uC900 \uB9C8\uC9C0\uB9C9\uC5D0 \uC218\uD589\uD55C \uC57D\uC18D\uBD80\uD130"
-      operationId: appointment_list_appointment_list_get
+      operationId: appointment_list_api_appointment_list_get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -278,13 +292,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /appointment/{id}:
+  /api/appointment/{id}:
     get:
       tags:
         - appointment
       summary: Appointment Info
       description: "\uC57D\uC18D \uC138\uBD80 \uC815\uBCF4 \uAC00\uC838\uC624\uAE30"
-      operationId: appointment_info_appointment__id__get
+      operationId: appointment_info_api_appointment__id__get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -327,7 +341,7 @@ paths:
       summary: Appointment Edit
       description: "\uC57D\uC18D \uC218\uC815 (\uD0A4\uC6CC\uB4DC, \uC7A5\uC18C \uB4F1\
         ..)"
-      operationId: appointment_edit_appointment__id__patch
+      operationId: appointment_edit_api_appointment__id__patch
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -386,7 +400,7 @@ paths:
         - appointment
       summary: Appointment Delete
       description: "\uC57D\uC18D \uC0AD\uC81C"
-      operationId: appointment_delete_appointment__id__delete
+      operationId: appointment_delete_api_appointment__id__delete
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -422,13 +436,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /appointment/{id}/share:
+  /api/appointment/{id}/share:
     get:
       tags:
         - appointment
       summary: Appointment Share Url
       description: "\uC57D\uC18D \uACF5\uC720 URL \uAC00\uC838\uC624\uAE30"
-      operationId: appointment_share_url_appointment__id__share_get
+      operationId: appointment_share_url_api_appointment__id__share_get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -449,7 +463,7 @@ paths:
                 type: string
                 format: uri
                 minLength: 1
-                title: Response Appointment Share Url Appointment  Id  Share Get
+                title: Response Appointment Share Url Api Appointment  Id  Share Get
         '401':
           description: Authentication Error
           content:
@@ -468,13 +482,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /appointment/{id}/join:
+  /api/appointment/{id}/join:
     post:
       tags:
         - appointment
       summary: Appointment Join
       description: "\uC57D\uC18D \uCC38\uAC00"
-      operationId: appointment_join_appointment__id__join_post
+      operationId: appointment_join_api_appointment__id__join_post
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -522,13 +536,13 @@ paths:
                   value:
                     errorId: ErrAlreadyConfirmed
                     message: Detail information
-  /appointment/{id}/join/nonmember:
+  /api/appointment/{id}/join/nonmember:
     post:
       tags:
         - appointment
       summary: Appointment Join Nonmember
       description: "\uC57D\uC18D \uCC38\uAC00"
-      operationId: appointment_join_nonmember_appointment__id__join_nonmember_post
+      operationId: appointment_join_nonmember_api_appointment__id__join_nonmember_post
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -582,13 +596,13 @@ paths:
                   value:
                     errorId: ErrAlreadyConfirmed
                     message: Detail information
-  /appointment/{id}/recommend:
+  /api/appointment/{id}/recommend:
     get:
       tags:
         - appointment
       summary: Appointment Get Recommend
       description: "\uC57D\uC18D \uCD94\uCC9C \uC2DC\uAC04 \uAC00\uC838\uC624\uAE30"
-      operationId: appointment_get_recommend_appointment__id__recommend_get
+      operationId: appointment_get_recommend_api_appointment__id__recommend_get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -610,7 +624,7 @@ paths:
                 items:
                   type: string
                   format: date-time
-                title: Response Appointment Get Recommend Appointment  Id  Recommend
+                title: Response Appointment Get Recommend Api Appointment  Id  Recommend
                   Get
         '401':
           description: Authentication Error
@@ -641,13 +655,13 @@ paths:
                   value:
                     errorId: ErrAlreadyConfirmed
                     message: Detail information
-  /appointment/{id}/confirm:
+  /api/appointment/{id}/confirm:
     post:
       tags:
         - appointment
       summary: Appointment Confirm
       description: "\uC57D\uC18D \uD655\uC815"
-      operationId: appointment_confirm_appointment__id__confirm_post
+      operationId: appointment_confirm_api_appointment__id__confirm_post
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -700,13 +714,13 @@ paths:
                   value:
                     errorId: ErrAlreadyConfirmed
                     message: Detail information
-  /calendar/schedule:
+  /api/calendar/schedule:
     post:
       tags:
         - calendar
       summary: Calendar Schedule Add
       description: "\uC77C\uC815 \uCD94\uAC00"
-      operationId: calendar_schedule_add_calendar_schedule_post
+      operationId: calendar_schedule_add_api_calendar_schedule_post
       responses:
         '200':
           description: Successful Response
@@ -735,13 +749,13 @@ paths:
       security:
         - AccessToken: []
         - RefreshToken: []
-  /calendar/schedule/{id}:
+  /api/calendar/schedule/{id}:
     get:
       tags:
         - calendar
       summary: Calendar Schedule Info
       description: "\uC77C\uC815 \uC138\uBD80 \uC815\uBCF4"
-      operationId: calendar_schedule_info_calendar_schedule__id__get
+      operationId: calendar_schedule_info_api_calendar_schedule__id__get
       responses:
         '200':
           description: Successful Response
@@ -775,7 +789,7 @@ paths:
         - calendar
       summary: Calendar Schedule Delete
       description: "\uC77C\uC815 \uC0AD\uC81C"
-      operationId: calendar_schedule_delete_calendar_schedule__id__delete
+      operationId: calendar_schedule_delete_api_calendar_schedule__id__delete
       responses:
         '200':
           description: Successful Response
@@ -803,13 +817,13 @@ paths:
       security:
         - AccessToken: []
         - RefreshToken: []
-  /calendar/schedule/list:
+  /api/calendar/schedule/list:
     get:
       tags:
         - calendar
       summary: Calendar Schedule List
       description: "\uC804\uCCB4 \uC77C\uC815 \uB9AC\uC2A4\uD2B8"
-      operationId: calendar_schedule_list_calendar_schedule_list_get
+      operationId: calendar_schedule_list_api_calendar_schedule_list_get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -820,7 +834,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2024-05-23T17:14:39.146691'
+            default: '2024-06-01T14:00:14.952774'
             title: Start
         - name: end
           in: query
@@ -828,7 +842,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2025-05-23T17:14:39.146698'
+            default: '2025-06-01T14:00:14.952778'
             title: End
         - name: page_token
           in: query
@@ -872,14 +886,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /calendar/sync:
+  /api/calendar/sync:
     post:
       tags:
         - calendar
       summary: Calendar Sync
       description: "\uC218\uB3D9\uC73C\uB85C \uC5F0\uB3D9 \uACC4\uC815 \uC5C5\uB370\
         \uC774\uD2B8 \uC694\uCCAD"
-      operationId: calendar_sync_calendar_sync_post
+      operationId: calendar_sync_api_calendar_sync_post
       responses:
         '200':
           description: Successful Response
@@ -907,12 +921,12 @@ paths:
       security:
         - AccessToken: []
         - RefreshToken: []
-  /location:
+  /api/location:
     get:
       tags:
         - location
       summary: Location Get
-      operationId: location_get_location_get
+      operationId: location_get_api_location_get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -935,7 +949,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Location'
-                title: Response Location Get Location Get
+                title: Response Location Get Api Location Get
         '401':
           description: Authentication Error
           content:
@@ -954,13 +968,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /user/me:
+  /api/user/me:
     get:
       tags:
         - user
       summary: User Me
       description: "\uB0B4 \uC815\uBCF4 \uAC00\uC838\uC624\uAE30"
-      operationId: user_me_user_me_get
+      operationId: user_me_api_user_me_get
       responses:
         '200':
           description: Successful Response
@@ -989,13 +1003,13 @@ paths:
       security:
         - AccessToken: []
         - RefreshToken: []
-  /user/account:
+  /api/user/account:
     get:
       tags:
         - user
       summary: User Account
       description: "\uC5F0\uB3D9\uB41C \uACC4\uC815 \uAC00\uC838\uC624\uAE30"
-      operationId: user_account_user_account_get
+      operationId: user_account_api_user_account_get
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -1029,7 +1043,7 @@ paths:
         - user
       summary: User Add Account
       description: "\uACC4\uC815 \uCD94\uAC00 \uC5F0\uB3D9"
-      operationId: user_add_account_user_account_post
+      operationId: user_add_account_api_user_account_post
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -1067,13 +1081,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-  /user/account/{id}:
+  /api/user/account/{id}:
     post:
       tags:
         - user
       summary: User Verify Account
       description: "\uACC4\uC815 \uC7AC\uC778\uC99D"
-      operationId: user_verify_account_user_account__id__post
+      operationId: user_verify_account_api_user_account__id__post
       security:
         - AccessToken: []
         - RefreshToken: []
@@ -1114,7 +1128,7 @@ paths:
         - user
       summary: User Delete Account
       description: "\uACC4\uC815 \uC5F0\uB3D9 \uD574\uC81C"
-      operationId: user_delete_account_user_account__id__delete
+      operationId: user_delete_account_api_user_account__id__delete
       security:
         - AccessToken: []
         - RefreshToken: []
