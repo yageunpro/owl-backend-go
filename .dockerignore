@@ -13,3 +13,6 @@ sqlc.json
 # migration
 .env
 migrate.sh
+# config
+config.json
+config-sample.json

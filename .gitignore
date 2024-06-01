@@ -1,5 +1,6 @@
 .env
 migrate.sh
+config.json
 
 .idea
 .local
