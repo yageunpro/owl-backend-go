@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Owl API
-  version: 0.0.1-alpha
+  version: 0.1.0
 servers:
   - url: https://yageun.pro
     description: prod server
@@ -834,7 +834,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2024-06-01T14:00:14.952774'
+            default: '2024-06-01T14:33:51.956150'
             title: Start
         - name: end
           in: query
@@ -842,7 +842,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2025-06-01T14:00:14.952778'
+            default: '2025-06-01T14:33:51.956153'
             title: End
         - name: page_token
           in: query
@@ -1579,7 +1579,7 @@ components:
           description: "\uC774\uB984"
         scheduleList:
           items:
-            $ref: '#/components/schemas/Schedule'
+            $ref: '#/components/schemas/ScheduleWithoutId'
           type: array
           title: Schedulelist
           description: "\uC77C\uC815 \uB9AC\uC2A4\uD2B8"
@@ -1682,6 +1682,32 @@ components:
         - data
         - nextToken
       title: ScheduleListRO
+    ScheduleWithoutId:
+      properties:
+        id:
+          type: 'null'
+          title: Id
+        title:
+          type: string
+          title: Title
+          description: "\uC77C\uC815 \uC774\uB984"
+        startTime:
+          type: string
+          format: date-time
+          title: Starttime
+          description: "\uC2DC\uC791\uC2DC\uAC04"
+        endTime:
+          type: string
+          format: date-time
+          title: Endtime
+          description: "\uC644\uB8CC\uC2DC\uAC04"
+      type: object
+      required:
+        - id
+        - title
+        - startTime
+        - endTime
+      title: ScheduleWithoutId
     UserAccountRO:
       properties:
         accountList:
