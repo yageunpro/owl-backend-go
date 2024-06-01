@@ -1,0 +1,18 @@
+{
+  "oauth": {
+    "data": "base64_encode_data",
+    "scopes": [
+      "openid",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/calendar.events.owned.readonly"
+    ]
+  },
+  "jwt": {
+    "accessKey": "access_super_secret",
+    "refreshKey": "refresh_super_secret"
+  },
+  "dsn": "postgres://postgres@127.0.0.1:5432/owl?pool_max_conns=10"
+}
+
+
