@@ -10,9 +10,6 @@ import (
 
 type Store interface {
 	Info(ctx context.Context, userId uuid.UUID) (*resInfo, error)
-	GetAccount(ctx context.Context, userId uuid.UUID) error
-	AddAccount(ctx context.Context, userId uuid.UUID) error
-	DeleteAccount(ctx context.Context, userId, accountId uuid.UUID) error
 }
 
 type store struct {
@@ -36,19 +33,4 @@ func (s *store) Info(ctx context.Context, userId uuid.UUID) (*resInfo, error) {
 		Username: row.Username,
 		Email:    row.Email,
 	}, nil
-}
-
-func (s *store) GetAccount(ctx context.Context, userId uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *store) AddAccount(ctx context.Context, userId uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (s *store) DeleteAccount(ctx context.Context, userId, accountId uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
 }

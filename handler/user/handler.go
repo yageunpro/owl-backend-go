@@ -45,21 +45,17 @@ func (h *handler) Me(c echo.Context) error {
 }
 
 func (h *handler) ListAccount(c echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	return echo.ErrNotFound
 }
 
 func (h *handler) AddAccount(c echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	return echo.ErrNotFound
 }
 
 func (h *handler) VerifyAccount(c echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	return echo.ErrNotFound
 }
 
 func (h *handler) DeleteAccount(c echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	return echo.ErrNotFound
 }
