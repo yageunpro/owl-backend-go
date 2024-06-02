@@ -47,3 +47,22 @@ type CalendarSchedule struct {
 	UpdatedAt pgtype.Timestamptz
 	DeletedAt pgtype.Timestamptz
 }
+
+type LocationLocation struct {
+	ID        uuid.UUID
+	QueryID   uuid.UUID
+	Title     string
+	Address   string
+	Category  string
+	MapX      int32
+	MapY      int32
+	DeletedAt pgtype.Timestamptz
+}
+
+type LocationQuery struct {
+	ID        uuid.UUID
+	Data      string
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	DeletedAt pgtype.Timestamptz
+}
