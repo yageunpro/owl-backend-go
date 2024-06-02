@@ -2,10 +2,13 @@ package oauth
 
 import (
 	"context"
+	"errors"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"strings"
 )
+
+const GoogleAuthURL = "https://accounts.google.com/o/oauth2/auth"
+const GoogleTokenURL = "https://oauth2.googleapis.com/token"
 
 type OAuth interface {
 	AuthCodeURL(state string, isForce bool) string
@@ -17,13 +20,30 @@ type googleOAuth struct {
 	config *oauth2.Config
 }
 
-func New(cfgData []byte, scopes []string) (OAuth, error) {
-	cfg, err := google.ConfigFromJSON(cfgData, scopes...)
-	if err != nil {
-		return nil, err
+type Config struct {
+	ClientId     string   `json:"client_id"`
+	ClientSecret string   `json:"client_secret"`
+	RedirectUri  string   `json:"redirect_uri"`
+	Scopes       []string `json:"scopes"`
+}
+
+func New(c Config) (OAuth, error) {
+	if c.ClientId == "" || c.ClientSecret == "" || c.RedirectUri == "" || c.Scopes == nil {
+		return nil, errors.New("client_id, client_secret, redirect_uri, scopes must be set")
 	}
 
-	return &googleOAuth{cfg}, nil
+	cfg := oauth2.Config{
+		ClientID:     c.ClientId,
+		ClientSecret: c.ClientSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  GoogleAuthURL,
+			TokenURL: GoogleTokenURL,
+		},
+		RedirectURL: c.RedirectUri,
+		Scopes:      c.Scopes,
+	}
+
+	return &googleOAuth{config: &cfg}, nil
 }
 
 func (g *googleOAuth) AuthCodeURL(state string, isForce bool) string {

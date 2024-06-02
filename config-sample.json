@@ -1,6 +1,8 @@
 {
   "oauth": {
-    "data": "base64_encode_data",
+    "client_id": "google_client_id",
+    "client_secret": "google_client_secret",
+    "redirect_uri": "http://localhost:8000/api/auth/callback/google",
     "scopes": [
       "openid",
       "https://www.googleapis.com/auth/userinfo.email",
@@ -9,8 +11,8 @@
     ]
   },
   "jwt": {
-    "accessKey": "access_super_secret",
-    "refreshKey": "refresh_super_secret"
+    "access_key": "access_super_secret",
+    "refresh_key": "refresh_super_secret"
   },
   "dsn": "postgres://postgres@127.0.0.1:5432/owl?pool_max_conns=10"
 }

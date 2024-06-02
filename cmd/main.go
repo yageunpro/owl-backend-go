@@ -24,7 +24,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	o, err := oauth.New(config.OAuth.Data, config.OAuth.Scopes)
+	o, err := oauth.New(oauth.Config{
+		ClientId:     config.OAuth.ClientId,
+		ClientSecret: config.OAuth.ClientSecret,
+		RedirectUri:  config.OAuth.RedirectUri,
+		Scopes:       config.OAuth.Scopes,
+	})
 	if err != nil {
 		slog.Error("fail to init oauth", "detail", err)
 		os.Exit(1)

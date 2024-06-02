@@ -9,13 +9,15 @@ import (
 const PathEnvKey = "APP__CONFIG__PATH"
 
 type oAuthConfig struct {
-	Data   []byte   `json:"data"`
-	Scopes []string `json:"scopes"`
+	ClientId     string   `json:"client_id"`
+	ClientSecret string   `json:"client_secret"`
+	RedirectUri  string   `json:"redirect_uri"`
+	Scopes       []string `json:"scopes"`
 }
 
 type jwtConfig struct {
-	AccessKey  string `json:"accessKey"`
-	RefreshKey string `json:"refreshKey"`
+	AccessKey  string `json:"access_key"`
+	RefreshKey string `json:"refresh_key"`
 }
 
 type jsonData struct {
