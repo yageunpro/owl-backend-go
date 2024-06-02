@@ -20,14 +20,21 @@ type jwtConfig struct {
 	RefreshKey string `json:"refresh_key"`
 }
 
+type naverConfig struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
 type jsonData struct {
 	OAuth oAuthConfig `json:"oauth"`
 	JWT   jwtConfig   `json:"jwt"`
+	Naver naverConfig `json:"naver"`
 	Dsn   string      `json:"dsn"`
 }
 
 var OAuth *oAuthConfig
 var JWT *jwtConfig
+var Naver *naverConfig
 var DBDsn string
 
 func init() {
@@ -53,5 +60,6 @@ func init() {
 
 	OAuth = &data.OAuth
 	JWT = &data.JWT
+	Naver = &data.Naver
 	DBDsn = data.Dsn
 }

@@ -14,6 +14,10 @@
     "access_key": "access_super_secret",
     "refresh_key": "refresh_super_secret"
   },
+  "naver": {
+    "client_id": "naver_client_id",
+    "client_secret": "naver_client_secret"
+  },
   "dsn": "postgres://postgres@127.0.0.1:5432/owl?pool_max_conns=10"
 }
 
