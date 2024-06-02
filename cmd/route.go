@@ -3,12 +3,13 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/yageunpro/owl-backend-go/handler"
+	"github.com/yageunpro/owl-backend-go/internal/jwt"
 	"github.com/yageunpro/owl-backend-go/internal/openapi"
 	"net/http"
 )
 
 func Route(e *echo.Echo, h *handler.Handler) {
-	g := e.Group("/api")
+	g := e.Group("/api", jwt.Middleware)
 
 	g.GET("/docs", func(c echo.Context) error {
 		return c.Redirect(http.StatusPermanentRedirect, "/api/docs/index.html")
@@ -16,10 +17,15 @@ func Route(e *echo.Echo, h *handler.Handler) {
 	g.GET("/docs/*", echo.WrapHandler(openapi.Handler()))
 
 	auth := g.Group("/auth")
+
 	appointment := g.Group("/appointment")
+	appointment.Use()
 	calendar := g.Group("/calendar")
+	calendar.Use()
 	location := g.Group("/location")
+	location.Use()
 	user := g.Group("/user")
+	user.Use()
 
 	auth.GET("/oauth/google", h.Auth.GoogleLogin)
 	auth.GET("/callback/google", h.Auth.GoogleCallback)

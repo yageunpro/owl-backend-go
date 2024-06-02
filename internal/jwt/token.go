@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-
 	"time"
 )
 
@@ -57,4 +56,48 @@ func NewRefreshToken(userId uuid.UUID) (string, error) {
 		return "", errors.Join(errors.New("could not sign refresh token"), err)
 	}
 	return token, nil
+}
+
+func ValidateToken(tokenString string) (uuid.UUID, error) {
+	tokenClaims := new(claims)
+
+	tok, err := jwt.ParseWithClaims(tokenString, tokenClaims, func(token *jwt.Token) (interface{}, error) {
+		iss, err := token.Claims.GetIssuer()
+		if err != nil {
+			return nil, errors.Join(errors.New("could not get issuer"), err)
+		}
+		if iss != Issuer {
+			return nil, errors.New("invalid issuer")
+		}
+
+		sub, err := token.Claims.GetSubject()
+		if err != nil {
+			return nil, errors.Join(errors.New("could not get subject"), err)
+		}
+		if sub != Subject {
+			return nil, errors.New("invalid subject")
+		}
+
+		aud, err := token.Claims.GetAudience()
+		if err != nil {
+			return nil, errors.Join(errors.New("could not get audience"), err)
+		}
+
+		switch aud[0] {
+		case AccessAud:
+			return getSecretKey(access)
+		case RefreshAud:
+			return getSecretKey(refresh)
+		}
+		return nil, errors.New("invalid audience")
+	})
+	if err != nil {
+		return uuid.Nil, errors.Join(errors.New("could not parse token"), err)
+	}
+
+	if tok.Valid {
+		return tokenClaims.UserId, nil
+	}
+
+	return uuid.Nil, ErrInvalidToken
 }
