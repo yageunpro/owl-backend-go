@@ -852,19 +852,17 @@ paths:
       parameters:
         - name: start
           in: query
-          required: false
+          required: true
           schema:
             type: string
             format: date-time
-            default: '2024-06-02T09:39:46.407406'
             title: Start
         - name: end
           in: query
-          required: false
+          required: true
           schema:
             type: string
             format: date-time
-            default: '2025-06-02T09:39:46.407410'
             title: End
         - name: page_token
           in: query

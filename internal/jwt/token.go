@@ -92,6 +92,9 @@ func ValidateToken(tokenString string) (uuid.UUID, error) {
 		return nil, errors.New("invalid audience")
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return uuid.Nil, ErrInvalidToken
+		}
 		return uuid.Nil, errors.Join(errors.New("could not parse token"), err)
 	}
 

@@ -1,6 +1,5 @@
 -- +goose Up
 -- +goose StatementBegin
-
 CREATE SCHEMA IF NOT EXISTS auth;
 
 CREATE TABLE auth."user"

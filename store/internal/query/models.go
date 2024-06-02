@@ -37,3 +37,13 @@ type AuthUser struct {
 	UpdatedAt pgtype.Timestamptz
 	DeletedAt pgtype.Timestamptz
 }
+
+type CalendarSchedule struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Title     string
+	Period    pgtype.Range[pgtype.Timestamptz]
+	CreatedAt pgtype.Timestamptz
+	UpdatedAt pgtype.Timestamptz
+	DeletedAt pgtype.Timestamptz
+}
