@@ -1,8 +1,11 @@
 package user
 
 import (
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/yageunpro/owl-backend-go/internal/jwt"
 	"github.com/yageunpro/owl-backend-go/service"
+	"net/http"
 )
 
 type Handler interface {
@@ -22,8 +25,23 @@ func New(svc *service.Service) Handler {
 }
 
 func (h *handler) Me(c echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	userId := jwt.GetUserID(c.Request().Context())
+	if userId == uuid.Nil {
+		return echo.ErrUnauthorized
+	}
+
+	out, err := h.svc.User.Info(c.Request().Context(), userId)
+	if err != nil {
+		return err
+	}
+
+	res := resUserInfo{
+		Id:       out.Id,
+		Username: out.Username,
+		Email:    out.Email,
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *handler) ListAccount(c echo.Context) error {
