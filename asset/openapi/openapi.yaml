@@ -721,6 +721,12 @@ paths:
       summary: Calendar Schedule Add
       description: "\uC77C\uC815 \uCD94\uAC00"
       operationId: calendar_schedule_add_api_calendar_schedule_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleAddRQ'
+        required: true
       responses:
         '200':
           description: Successful Response
@@ -756,6 +762,17 @@ paths:
       summary: Calendar Schedule Info
       description: "\uC77C\uC815 \uC138\uBD80 \uC815\uBCF4"
       operationId: calendar_schedule_info_api_calendar_schedule__id__get
+      security:
+        - AccessToken: []
+        - RefreshToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            title: Id
       responses:
         '200':
           description: Successful Response
@@ -781,15 +798,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-      security:
-        - AccessToken: []
-        - RefreshToken: []
     delete:
       tags:
         - calendar
       summary: Calendar Schedule Delete
       description: "\uC77C\uC815 \uC0AD\uC81C"
       operationId: calendar_schedule_delete_api_calendar_schedule__id__delete
+      security:
+        - AccessToken: []
+        - RefreshToken: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            title: Id
       responses:
         '200':
           description: Successful Response
@@ -814,9 +839,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrUnexpected'
-      security:
-        - AccessToken: []
-        - RefreshToken: []
   /api/calendar/schedule/list:
     get:
       tags:
@@ -834,7 +856,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2024-06-01T14:33:51.956150'
+            default: '2024-06-02T09:39:46.407406'
             title: Start
         - name: end
           in: query
@@ -842,7 +864,7 @@ paths:
           schema:
             type: string
             format: date-time
-            default: '2025-06-01T14:33:51.956153'
+            default: '2025-06-02T09:39:46.407410'
             title: End
         - name: page_token
           in: query
@@ -1665,6 +1687,28 @@ components:
         - startTime
         - endTime
       title: Schedule
+    ScheduleAddRQ:
+      properties:
+        title:
+          type: string
+          title: Title
+          description: "\uC77C\uC815 \uC774\uB984"
+        startTime:
+          type: string
+          format: date-time
+          title: Starttime
+          description: "\uC2DC\uC791\uC2DC\uAC04"
+        endTime:
+          type: string
+          format: date-time
+          title: Endtime
+          description: "\uC644\uB8CC\uC2DC\uAC04"
+      type: object
+      required:
+        - title
+        - startTime
+        - endTime
+      title: ScheduleAddRQ
     ScheduleListRO:
       properties:
         data:
