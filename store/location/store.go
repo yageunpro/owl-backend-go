@@ -19,15 +19,6 @@ type store struct {
 	pool *db.Pool
 }
 
-type Location struct {
-	Id       uuid.UUID
-	Title    string
-	Address  string
-	Category string
-	MapX     int
-	MapY     int
-}
-
 func New(pool *db.Pool) Store {
 	return &store{pool: pool}
 }
