@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/yageunpro/owl-backend-go/internal/db"
 	"github.com/yageunpro/owl-backend-go/store/internal/query"
-	"time"
 )
 
 type Store interface {
@@ -40,16 +39,15 @@ func (s *store) GetQuery(ctx context.Context, queryString string) (*resGetQuery,
 	if err != nil {
 		return nil, err
 	}
-	if row.UpdatedAt.Time.Before(time.Now().UTC().Add(-24 * time.Hour)) {
-		return &resGetQuery{
-			QueryId:   row.ID,
-			Locations: make([]Location, 0),
-		}, nil
-	}
 
 	rows, err := qry.GetLocationWithQueryId(ctx, row.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	res := resGetQuery{
 		QueryId:   row.ID,
+		QueryTime: row.UpdatedAt.Time,
 		Locations: make([]Location, len(rows)),
 	}
 	for i := range rows {
@@ -84,7 +82,7 @@ func (s *store) SaveQuery(ctx context.Context, queryString string, locations []L
 
 	for i := range locations {
 		err = qry.CreateLocation(ctx, query.CreateLocationParams{
-			ID:       uuid.Must(uuid.NewV7()),
+			ID:       locations[i].Id,
 			QueryID:  queryId,
 			Title:    locations[i].Title,
 			Address:  locations[i].Address,
@@ -132,6 +130,11 @@ func (s *store) UpdateQuery(ctx context.Context, queryId uuid.UUID, locations []
 		if err != nil {
 			return errors.Join(errors.New("failed to create location"), err)
 		}
+	}
+
+	err = qry.UpdateQueryTime(ctx, queryId)
+	if err != nil {
+		return errors.Join(errors.New("failed to update query"), err)
 	}
 
 	err = tx.Commit(ctx)

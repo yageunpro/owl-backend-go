@@ -10,6 +10,7 @@ import (
 	"github.com/yageunpro/owl-backend-go/internal/db"
 	"github.com/yageunpro/owl-backend-go/internal/google/oauth"
 	"github.com/yageunpro/owl-backend-go/internal/jwt"
+	"github.com/yageunpro/owl-backend-go/internal/naver/search"
 	"github.com/yageunpro/owl-backend-go/service"
 	"github.com/yageunpro/owl-backend-go/store"
 	"log/slog"
@@ -35,6 +36,9 @@ func main() {
 		os.Exit(1)
 	}
 	oauth.InitGlobal(o)
+
+	n := search.New(config.Naver.ClientID, config.Naver.ClientSecret)
+	search.InitGlobal(n)
 
 	jwt.SetSecretKey(config.JWT.AccessKey, config.JWT.RefreshKey)
 
