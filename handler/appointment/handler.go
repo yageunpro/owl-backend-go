@@ -67,12 +67,39 @@ func (h *handler) Add(c echo.Context) error {
 		param.CategoryList = req.CategoryList
 	}
 
-	err = h.svc.Appointment.Add(c.Request().Context(), param)
+	out, err := h.svc.Appointment.Add(c.Request().Context(), param)
 	if err != nil {
 		return err
 	}
 
-	return c.NoContent(http.StatusOK)
+	res := resInfo{
+		Id:              out.Id,
+		OrganizerId:     out.OrganizerId,
+		Title:           out.Title,
+		Location:        nil,
+		Status:          out.Status,
+		ConfirmTime:     out.ConfirmTime,
+		Description:     out.Description,
+		CategoryList:    out.CategoryList,
+		ParticipantList: make([]resParticipant, len(out.Participants)),
+		Deadline:        out.Deadline,
+	}
+
+	if out.Location != nil {
+		res.Location = &resLocation{
+			Id:       out.Location.Id,
+			Title:    out.Location.Title,
+			Address:  out.Location.Address,
+			Category: out.Location.Category,
+			Position: out.Location.Position,
+		}
+	}
+	for i := range out.Participants {
+		res.ParticipantList[i].Id = out.Participants[i].UserId
+		res.ParticipantList[i].Name = out.Participants[i].Username
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
 
 func (h *handler) List(c echo.Context) error {

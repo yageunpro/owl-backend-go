@@ -10,7 +10,7 @@ import (
 )
 
 type Service interface {
-	Add(ctx context.Context, arg AddParam) error
+	Add(ctx context.Context, arg AddParam) (*resInfo, error)
 	List(ctx context.Context, arg ListParam) (*resInfoList, error)
 	Info(ctx context.Context, appointmentId uuid.UUID) (*resInfo, error)
 	Edit(ctx context.Context, arg EditParam) (*resInfo, error)
@@ -29,9 +29,10 @@ func New(sto *store.Store) Service {
 	return &service{store: sto}
 }
 
-func (s *service) Add(ctx context.Context, arg AddParam) error {
-	return s.store.Appointment.Create(ctx, appointment.CreateAppointmentParam{
-		Id:           uuid.Must(uuid.NewV7()),
+func (s *service) Add(ctx context.Context, arg AddParam) (*resInfo, error) {
+	id := uuid.Must(uuid.NewV7())
+	err := s.store.Appointment.Create(ctx, appointment.CreateAppointmentParam{
+		Id:           id,
 		UserId:       arg.UserId,
 		Title:        arg.Title,
 		Description:  arg.Description,
@@ -39,6 +40,10 @@ func (s *service) Add(ctx context.Context, arg AddParam) error {
 		CategoryList: arg.CategoryList,
 		Deadline:     arg.Deadline,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return s.Info(ctx, id)
 }
 
 func (s *service) List(ctx context.Context, arg ListParam) (*resInfoList, error) {
