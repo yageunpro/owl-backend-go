@@ -5,9 +5,81 @@
 package query
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	uuid "github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type AppointmentStatus string
+
+const (
+	AppointmentStatusDRAFT   AppointmentStatus = "DRAFT"
+	AppointmentStatusCONFIRM AppointmentStatus = "CONFIRM"
+	AppointmentStatusDONE    AppointmentStatus = "DONE"
+	AppointmentStatusCANCEL  AppointmentStatus = "CANCEL"
+	AppointmentStatusDELETE  AppointmentStatus = "DELETE"
+)
+
+func (e *AppointmentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AppointmentStatus(s)
+	case string:
+		*e = AppointmentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AppointmentStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAppointmentStatus struct {
+	AppointmentStatus AppointmentStatus
+	Valid             bool // Valid is true if AppointmentStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAppointmentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AppointmentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AppointmentStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAppointmentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AppointmentStatus), nil
+}
+
+type AppointmentAppointment struct {
+	ID          uuid.UUID
+	OrganizerID uuid.UUID
+	Title       string
+	Description string
+	Category    []string
+	Status      AppointmentStatus
+	LocationID  uuid.NullUUID
+	Deadline    pgtype.Timestamptz
+	ConfirmTime pgtype.Timestamptz
+	CreatedAt   pgtype.Timestamptz
+	UpdatedAt   pgtype.Timestamptz
+	DeletedAt   pgtype.Timestamptz
+}
+
+type AppointmentParticipant struct {
+	ID            uuid.UUID
+	AppointmentID uuid.UUID
+	UserID        uuid.UUID
+	CreatedAt     pgtype.Timestamptz
+	UpdatedAt     pgtype.Timestamptz
+	DeletedAt     pgtype.Timestamptz
+}
 
 type AuthOauth struct {
 	ID           uuid.UUID

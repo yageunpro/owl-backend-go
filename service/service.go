@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yageunpro/owl-backend-go/service/appointment"
 	"github.com/yageunpro/owl-backend-go/service/auth"
 	"github.com/yageunpro/owl-backend-go/service/calendar"
 	"github.com/yageunpro/owl-backend-go/service/location"
@@ -9,17 +10,19 @@ import (
 )
 
 type Service struct {
-	Auth     auth.Service
-	Calendar calendar.Service
-	Location location.Service
-	User     user.Service
+	Appointment appointment.Service
+	Auth        auth.Service
+	Calendar    calendar.Service
+	Location    location.Service
+	User        user.Service
 }
 
 func New(sto *store.Store) (*Service, error) {
 	return &Service{
-		Auth:     auth.New(sto),
-		Calendar: calendar.New(sto),
-		Location: location.New(sto),
-		User:     user.New(sto),
+		Appointment: appointment.New(sto),
+		Auth:        auth.New(sto),
+		Calendar:    calendar.New(sto),
+		Location:    location.New(sto),
+		User:        user.New(sto),
 	}, nil
 }
