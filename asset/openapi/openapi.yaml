@@ -196,7 +196,8 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                $ref: '#/components/schemas/AppointmentRO'
         '401':
           description: Authentication Error
           content:
