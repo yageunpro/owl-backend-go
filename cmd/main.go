@@ -92,7 +92,6 @@ func main() {
 			return nil
 		},
 	}))
-	e.Use(middleware.Gzip())
 
 	e.Debug = true
 	e.HideBanner = true
