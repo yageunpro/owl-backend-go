@@ -33,8 +33,9 @@ WHERE open_id = $1;
 
 -- name: UpdateOAuthToken :exec
 UPDATE auth.oauth
-SET access_token  = $1,
-    refresh_token = $2,
-    valid_until   = $3,
+SET access_token  = COALESCE(sqlc.narg(u_access), access_token),
+    refresh_token = COALESCE(sqlc.narg(u_refresh), refresh_token),
+    valid_until   = COALESCE(sqlc.narg(u_valid_until), valid_until),
+    allow_sync    = COALESCE(sqlc.narg(u_allow_sync), allow_sync),
     updated_at    = NOW()
 WHERE id = $1;

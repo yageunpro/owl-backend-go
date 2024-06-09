@@ -13,6 +13,7 @@ import (
 
 type Store interface {
 	CreateOAuthUser(ctx context.Context, arg CreateOAuthUserParam) error
+	UpdateOAuthUser(ctx context.Context, arg UpdateOAuthUserParam) error
 	GetOAuthUser(ctx context.Context, openId string) (*resGetOAuthUser, error)
 	CreateDevUser(ctx context.Context, arg CreateDevUserParam) error
 	GetDevUser(ctx context.Context, email string) (*resGetDevUser, error)
@@ -72,6 +73,33 @@ func (s *store) CreateOAuthUser(ctx context.Context, arg CreateOAuthUserParam) e
 		return errors.Join(errors.New("failed to commit transaction"), err)
 	}
 
+	return nil
+}
+
+func (s *store) UpdateOAuthUser(ctx context.Context, arg UpdateOAuthUserParam) error {
+	qry := query.New(s.pool)
+
+	param := query.UpdateOAuthTokenParams{
+		ID:          arg.UserId,
+		UAccess:     pgtype.Text{Valid: false},
+		URefresh:    pgtype.Text{Valid: false},
+		UValidUntil: pgtype.Timestamptz{Time: arg.ValidUntil.UTC(), Valid: true},
+		UAllowSync:  pgtype.Bool{Bool: arg.AllowSync, Valid: true},
+	}
+
+	if arg.AccessToken != "" {
+		param.UAccess.String = arg.AccessToken
+		param.UAccess.Valid = true
+	}
+	if arg.RefreshToken != nil {
+		param.URefresh.String = *arg.RefreshToken
+		param.URefresh.Valid = true
+	}
+
+	err := qry.UpdateOAuthToken(ctx, param)
+	if err != nil {
+		return errors.Join(errors.New("failed to update user"), err)
+	}
 	return nil
 }
 

@@ -21,3 +21,12 @@ type CreateOAuthUserParam struct {
 	AllowSync    bool
 	ValidUntil   time.Time
 }
+
+type UpdateOAuthUserParam struct {
+	UserId       uuid.UUID
+	OpenId       string
+	AccessToken  string
+	RefreshToken *string
+	AllowSync    bool
+	ValidUntil   time.Time
+}

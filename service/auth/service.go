@@ -124,6 +124,25 @@ func (s *service) GoogleCallback(ctx context.Context, arg GoogleCallbackParam) (
 		}
 	} else {
 		userId = out.UserId
+		var refreshToken *string
+		if token.RefreshToken != "" {
+			refreshToken = &token.RefreshToken
+		}
+		isAllow, err := oauth.IsAllowSync(arg.Scope)
+		if err != nil {
+			return nil, errors.Join(errors.New("failed to check oauth permission"), err)
+		}
+		err = s.store.Auth.UpdateOAuthUser(ctx, auth.UpdateOAuthUserParam{
+			UserId:       userId,
+			OpenId:       info.OpenId,
+			AccessToken:  token.AccessToken,
+			RefreshToken: refreshToken,
+			AllowSync:    isAllow,
+			ValidUntil:   token.Expiry.UTC(),
+		})
+		if err != nil {
+			return nil, errors.Join(errors.New("failed to update user"), err)
+		}
 	}
 
 	accessToken, err := jwt.NewAccessToken(userId)

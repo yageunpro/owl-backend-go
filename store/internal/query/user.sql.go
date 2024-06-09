@@ -146,20 +146,29 @@ func (q *Queries) GetUserPassword(ctx context.Context, id uuid.UUID) (GetUserPas
 
 const updateOAuthToken = `-- name: UpdateOAuthToken :exec
 UPDATE auth.oauth
-SET access_token  = $1,
-    refresh_token = $2,
-    valid_until   = $3,
+SET access_token  = COALESCE($2, access_token),
+    refresh_token = COALESCE($3, refresh_token),
+    valid_until   = COALESCE($4, valid_until),
+    allow_sync    = COALESCE($5, allow_sync),
     updated_at    = NOW()
 WHERE id = $1
 `
 
 type UpdateOAuthTokenParams struct {
-	AccessToken  string
-	RefreshToken pgtype.Text
-	ValidUntil   pgtype.Timestamptz
+	ID          uuid.UUID
+	UAccess     pgtype.Text
+	URefresh    pgtype.Text
+	UValidUntil pgtype.Timestamptz
+	UAllowSync  pgtype.Bool
 }
 
 func (q *Queries) UpdateOAuthToken(ctx context.Context, arg UpdateOAuthTokenParams) error {
-	_, err := q.db.Exec(ctx, updateOAuthToken, arg.AccessToken, arg.RefreshToken, arg.ValidUntil)
+	_, err := q.db.Exec(ctx, updateOAuthToken,
+		arg.ID,
+		arg.UAccess,
+		arg.URefresh,
+		arg.UValidUntil,
+		arg.UAllowSync,
+	)
 	return err
 }
