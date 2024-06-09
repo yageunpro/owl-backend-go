@@ -107,6 +107,32 @@ func (q *Queries) FindUser(ctx context.Context, email string) (FindUserRow, erro
 	return i, err
 }
 
+const getAllOAuthUserIds = `-- name: GetAllOAuthUserIds :many
+SELECT id
+FROM auth.oauth
+WHERE deleted_at IS NULL
+`
+
+func (q *Queries) GetAllOAuthUserIds(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, getAllOAuthUserIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, email, username
 FROM auth."user"

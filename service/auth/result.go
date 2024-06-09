@@ -1,6 +1,9 @@
 package auth
 
-import "net/http"
+import (
+	"github.com/google/uuid"
+	"net/http"
+)
 
 type resGoogleLogin struct {
 	RedirectURL string
@@ -8,6 +11,7 @@ type resGoogleLogin struct {
 }
 
 type resGoogleCallback struct {
+	UserId      uuid.UUID
 	RedirectURL string
 	Cookie      *http.Cookie
 }

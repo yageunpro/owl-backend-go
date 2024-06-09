@@ -20,6 +20,11 @@ SELECT id, password_hash
 FROM auth.password
 WHERE id = $1;
 
+-- name: GetAllOAuthUserIds :many
+SELECT id
+FROM auth.oauth
+WHERE deleted_at IS NULL;
+
 -- name: GetUserOAuthToken :one
 SELECT id, open_id, access_token, refresh_token, valid_until
 FROM auth.oauth

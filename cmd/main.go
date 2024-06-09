@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/go-co-op/gocron/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -16,6 +17,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -59,6 +61,44 @@ func main() {
 		slog.Error("fail to init handler", "detail", err)
 		os.Exit(1)
 	}
+
+	schl, err := gocron.NewScheduler()
+	if err != nil {
+		slog.Error("fail to init scheduler", "detail", err)
+		os.Exit(1)
+	}
+
+	_, err = schl.NewJob(
+		gocron.DurationJob(time.Hour),
+		gocron.NewTask(
+			func() {
+				slog.Info("start sync calendars job")
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+				defer cancel()
+				userIds, err := sto.Auth.GetAllOAuthUserIds(ctx)
+				if err != nil {
+					slog.Error("job failed, GetAllOAuthUserIds", "detail", err)
+					return
+				}
+
+				for _, userId := range userIds {
+					err = svc.Calendar.Sync(ctx, userId)
+					if err != nil {
+						slog.Error("job failed, Sync", "detail", err)
+						return
+					}
+				}
+				slog.Info("end sync calendars job")
+				return
+			}),
+	)
+	if err != nil {
+		slog.Error("fail to init job", "detail", err)
+		os.Exit(1)
+	}
+
+	schl.Start()
+	defer schl.Shutdown()
 
 	e := echo.New()
 	e.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{

@@ -64,6 +64,8 @@ func (h *handler) GoogleCallback(c echo.Context) error {
 		return err
 	}
 
+	_ = h.svc.Calendar.Sync(c.Request().Context(), out.UserId)
+
 	c.SetCookie(out.Cookie)
 	c.SetCookie(&http.Cookie{
 		Name:   auth.CookieKey,

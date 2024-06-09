@@ -160,6 +160,7 @@ func (s *service) GoogleCallback(ctx context.Context, arg GoogleCallbackParam) (
 	}
 
 	res := resGoogleCallback{
+		UserId:      userId,
 		RedirectURL: val.Ref,
 		Cookie:      authCookie,
 	}

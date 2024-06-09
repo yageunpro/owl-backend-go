@@ -19,6 +19,7 @@ type Store interface {
 	GetOAuthToken(ctx context.Context, userId uuid.UUID) (*resGetOAuthToken, error)
 	CreateDevUser(ctx context.Context, arg CreateDevUserParam) error
 	GetDevUser(ctx context.Context, email string) (*resGetDevUser, error)
+	GetAllOAuthUserIds(ctx context.Context) ([]uuid.UUID, error)
 }
 
 type store struct {
@@ -185,4 +186,14 @@ func (s *store) GetDevUser(ctx context.Context, email string) (*resGetDevUser, e
 		UserId:       row.ID,
 		PasswordHash: row.PasswordHash,
 	}, nil
+}
+
+func (s *store) GetAllOAuthUserIds(ctx context.Context) ([]uuid.UUID, error) {
+	qry := query.New(s.pool)
+	rows, err := qry.GetAllOAuthUserIds(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return rows, nil
 }
