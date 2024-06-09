@@ -58,6 +58,9 @@ func GetAllEvents(ctx context.Context, arg Param) (*Result, error) {
 		for i := range events.Items {
 			var startTime, endTime time.Time
 
+			if events.Items[i].Start == nil || events.Items[i].End == nil {
+				slog.Error("failed to parse time, nil", slog.String("title", events.Items[i].Summary))
+			}
 			startTime, err = time.Parse(time.RFC3339, events.Items[i].Start.DateTime)
 			if err != nil {
 				slog.Error("failed to parse start time", slog.String("event", events.Items[i].Start.DateTime))
