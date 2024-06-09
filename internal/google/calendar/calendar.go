@@ -34,7 +34,7 @@ func GetAllEvents(ctx context.Context, arg Param) (*Result, error) {
 	}
 
 	krTimeZone := time.FixedZone("KR", 9*60*60)
-	qry := srv.Events.List("primary").TimeZone("Asia/Seoul")
+	qry := srv.Events.List("primary").TimeZone("Asia/Seoul").SingleEvents(true)
 
 	res := Result{
 		SyncToken: "",
