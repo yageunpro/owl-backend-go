@@ -14,6 +14,7 @@ type OAuth interface {
 	AuthCodeURL(state string, isForce bool) string
 	Token(ctx context.Context, code string) (*oauth2.Token, error)
 	IsAllowSync(scope []string) bool
+	Config() *oauth2.Config
 }
 
 type googleOAuth struct {
@@ -69,4 +70,8 @@ func (g *googleOAuth) IsAllowSync(scope []string) bool {
 	}
 
 	return false
+}
+
+func (g *googleOAuth) Config() *oauth2.Config {
+	return g.config
 }

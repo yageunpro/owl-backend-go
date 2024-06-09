@@ -13,6 +13,15 @@ type CreateScheduleParam struct {
 	EndTime   time.Time
 }
 
+type CreateGoogleScheduleParam struct {
+	Id           uuid.UUID
+	UserId       uuid.UUID
+	Title        string
+	StartTime    time.Time
+	EndTime      time.Time
+	GoogleCalcId string
+}
+
 type FindScheduleParam struct {
 	UserId    uuid.UUID
 	StartTime time.Time

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -15,6 +16,7 @@ type Store interface {
 	CreateOAuthUser(ctx context.Context, arg CreateOAuthUserParam) error
 	UpdateOAuthUser(ctx context.Context, arg UpdateOAuthUserParam) error
 	GetOAuthUser(ctx context.Context, openId string) (*resGetOAuthUser, error)
+	GetOAuthToken(ctx context.Context, userId uuid.UUID) (*resGetOAuthToken, error)
 	CreateDevUser(ctx context.Context, arg CreateDevUserParam) error
 	GetDevUser(ctx context.Context, email string) (*resGetDevUser, error)
 }
@@ -114,6 +116,22 @@ func (s *store) GetOAuthUser(ctx context.Context, openId string) (*resGetOAuthUs
 	}
 
 	return &resGetOAuthUser{UserId: row.ID}, nil
+}
+
+func (s *store) GetOAuthToken(ctx context.Context, userId uuid.UUID) (*resGetOAuthToken, error) {
+	qry := query.New(s.pool)
+	row, err := qry.GetUserOAuthToken(ctx, userId)
+	if err != nil {
+		return nil, errors.Join(errors.New("failed to find user"), err)
+	}
+
+	return &resGetOAuthToken{
+		UserId:       userId,
+		OpenId:       row.OpenID,
+		AccessToken:  row.AccessToken,
+		RefreshToken: row.RefreshToken.String,
+		ExpireTime:   row.ValidUntil.Time,
+	}, nil
 }
 
 func (s *store) CreateDevUser(ctx context.Context, arg CreateDevUserParam) error {

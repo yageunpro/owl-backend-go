@@ -111,10 +111,20 @@ type AuthUser struct {
 }
 
 type CalendarSchedule struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	Title        string
+	Period       pgtype.Range[pgtype.Timestamptz]
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+	DeletedAt    pgtype.Timestamptz
+	GoogleCalcID pgtype.Text
+}
+
+type CalendarSync struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
-	Title     string
-	Period    pgtype.Range[pgtype.Timestamptz]
+	SyncToken string
 	CreatedAt pgtype.Timestamptz
 	UpdatedAt pgtype.Timestamptz
 	DeletedAt pgtype.Timestamptz

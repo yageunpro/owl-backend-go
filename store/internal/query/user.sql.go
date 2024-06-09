@@ -126,6 +126,33 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (GetUserRow, error)
 	return i, err
 }
 
+const getUserOAuthToken = `-- name: GetUserOAuthToken :one
+SELECT id, open_id, access_token, refresh_token, valid_until
+FROM auth.oauth
+WHERE id = $1
+`
+
+type GetUserOAuthTokenRow struct {
+	ID           uuid.UUID
+	OpenID       string
+	AccessToken  string
+	RefreshToken pgtype.Text
+	ValidUntil   pgtype.Timestamptz
+}
+
+func (q *Queries) GetUserOAuthToken(ctx context.Context, id uuid.UUID) (GetUserOAuthTokenRow, error) {
+	row := q.db.QueryRow(ctx, getUserOAuthToken, id)
+	var i GetUserOAuthTokenRow
+	err := row.Scan(
+		&i.ID,
+		&i.OpenID,
+		&i.AccessToken,
+		&i.RefreshToken,
+		&i.ValidUntil,
+	)
+	return i, err
+}
+
 const getUserPassword = `-- name: GetUserPassword :one
 SELECT id, password_hash
 FROM auth.password

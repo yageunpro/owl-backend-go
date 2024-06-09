@@ -3,6 +3,8 @@ package calendar
 import (
 	"context"
 	"github.com/google/uuid"
+	calc "github.com/yageunpro/owl-backend-go/internal/google/calendar"
+	"github.com/yageunpro/owl-backend-go/internal/google/oauth"
 	"github.com/yageunpro/owl-backend-go/store"
 	"github.com/yageunpro/owl-backend-go/store/calendar"
 	"strconv"
@@ -103,5 +105,48 @@ func (s *service) ScheduleList(ctx context.Context, arg ScheduleListParam) (*res
 }
 
 func (s *service) Sync(ctx context.Context, userId uuid.UUID) error {
+	out, err := s.store.Auth.GetOAuthToken(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	tok := oauth.ToToken(out.AccessToken, out.RefreshToken, out.ExpireTime)
+	source, err := oauth.TokenSource(ctx, tok)
+	if err != nil {
+		return err
+	}
+
+	syncToken, err := s.store.Calendar.GetSyncToken(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	res, err := calc.GetAllEvents(ctx, calc.Param{
+		Source:    source,
+		SyncToken: syncToken,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, event := range res.Events {
+		err = s.store.Calendar.CreateGoogleSchedule(ctx, calendar.CreateGoogleScheduleParam{
+			Id:           uuid.Must(uuid.NewV7()),
+			UserId:       userId,
+			Title:        event.Title,
+			StartTime:    event.StartTime,
+			EndTime:      event.EndTime,
+			GoogleCalcId: event.CalcId,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	err = s.store.Calendar.UpdateSyncToken(ctx, userId, res.SyncToken)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

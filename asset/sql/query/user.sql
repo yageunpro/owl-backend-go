@@ -20,6 +20,11 @@ SELECT id, password_hash
 FROM auth.password
 WHERE id = $1;
 
+-- name: GetUserOAuthToken :one
+SELECT id, open_id, access_token, refresh_token, valid_until
+FROM auth.oauth
+WHERE id = $1;
+
 -- name: FindUser :one
 SELECT u.id AS id, u.email AS email, p.password_hash AS password_hash
 FROM auth."user" AS u

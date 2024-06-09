@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/yageunpro/owl-backend-go/internal/db"
 	"github.com/yageunpro/owl-backend-go/store/internal/query"
@@ -11,9 +12,12 @@ import (
 
 type Store interface {
 	CreateSchedule(ctx context.Context, arg CreateScheduleParam) error
+	CreateGoogleSchedule(ctx context.Context, arg CreateGoogleScheduleParam) error
 	GetSchedule(ctx context.Context, id, userId uuid.UUID) (*resSchedule, error)
 	DeleteSchedule(ctx context.Context, id, userId uuid.UUID) error
 	FindSchedule(ctx context.Context, arg FindScheduleParam) ([]resSchedule, error)
+	GetSyncToken(ctx context.Context, userId uuid.UUID) (string, error)
+	UpdateSyncToken(ctx context.Context, userId uuid.UUID, syncToken string) error
 }
 
 type store struct {
@@ -37,6 +41,32 @@ func (s *store) CreateSchedule(ctx context.Context, arg CreateScheduleParam) err
 			LowerType: pgtype.Inclusive,
 			UpperType: pgtype.Inclusive,
 			Valid:     true,
+		},
+	})
+	if err != nil {
+		return errors.Join(errors.New("failed to create calendar schedule"), err)
+	}
+
+	return nil
+}
+
+func (s *store) CreateGoogleSchedule(ctx context.Context, arg CreateGoogleScheduleParam) error {
+	qry := query.New(s.pool)
+
+	err := qry.CreateGoogleSchedule(ctx, query.CreateGoogleScheduleParams{
+		ID:     arg.Id,
+		UserID: arg.UserId,
+		Title:  arg.Title,
+		Period: pgtype.Range[pgtype.Timestamptz]{
+			Lower:     pgtype.Timestamptz{Time: arg.StartTime.UTC(), Valid: true},
+			Upper:     pgtype.Timestamptz{Time: arg.EndTime.UTC(), Valid: true},
+			LowerType: pgtype.Inclusive,
+			UpperType: pgtype.Inclusive,
+			Valid:     true,
+		},
+		GoogleCalcID: pgtype.Text{
+			String: arg.GoogleCalcId,
+			Valid:  true,
 		},
 	})
 	if err != nil {
@@ -102,4 +132,27 @@ func (s *store) FindSchedule(ctx context.Context, arg FindScheduleParam) ([]resS
 	}
 
 	return res, nil
+}
+
+func (s *store) GetSyncToken(ctx context.Context, userId uuid.UUID) (string, error) {
+	qry := query.New(s.pool)
+
+	row, err := qry.GetSync(ctx, userId)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", nil
+		}
+		return "", errors.Join(errors.New("failed to get sync token"), err)
+	}
+
+	return row.SyncToken, nil
+}
+
+func (s *store) UpdateSyncToken(ctx context.Context, userId uuid.UUID, syncToken string) error {
+	qry := query.New(s.pool)
+	return qry.CreateSync(ctx, query.CreateSyncParams{
+		ID:        uuid.Must(uuid.NewV7()),
+		UserID:    userId,
+		SyncToken: syncToken,
+	})
 }

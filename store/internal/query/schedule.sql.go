@@ -12,9 +12,39 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createGoogleSchedule = `-- name: CreateGoogleSchedule :exec
+INSERT INTO calendar.schedule (id, user_id, title, period, google_calc_id)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (google_calc_id)
+    DO UPDATE
+    SET user_id    = $2,
+        title      = $3,
+        period     = $4,
+        updated_at = NOW()
+`
+
+type CreateGoogleScheduleParams struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	Title        string
+	Period       pgtype.Range[pgtype.Timestamptz]
+	GoogleCalcID pgtype.Text
+}
+
+func (q *Queries) CreateGoogleSchedule(ctx context.Context, arg CreateGoogleScheduleParams) error {
+	_, err := q.db.Exec(ctx, createGoogleSchedule,
+		arg.ID,
+		arg.UserID,
+		arg.Title,
+		arg.Period,
+		arg.GoogleCalcID,
+	)
+	return err
+}
+
 const createSchedule = `-- name: CreateSchedule :exec
-INSERT INTO calendar.schedule (id, user_id, title, period)
-VALUES ($1, $2, $3, $4)
+INSERT INTO calendar.schedule (id, user_id, title, period, google_calc_id)
+VALUES ($1, $2, $3, $4, NULL)
 `
 
 type CreateScheduleParams struct {
@@ -31,6 +61,22 @@ func (q *Queries) CreateSchedule(ctx context.Context, arg CreateScheduleParams) 
 		arg.Title,
 		arg.Period,
 	)
+	return err
+}
+
+const createSync = `-- name: CreateSync :exec
+INSERT INTO calendar.sync (id, user_id, sync_token)
+VALUES ($1, $2, $3)
+`
+
+type CreateSyncParams struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	SyncToken string
+}
+
+func (q *Queries) CreateSync(ctx context.Context, arg CreateSyncParams) error {
+	_, err := q.db.Exec(ctx, createSync, arg.ID, arg.UserID, arg.SyncToken)
 	return err
 }
 
@@ -103,7 +149,10 @@ func (q *Queries) FindSchedule(ctx context.Context, arg FindScheduleParams) ([]F
 }
 
 const getSchedule = `-- name: GetSchedule :one
-SELECT id, title, period, deleted_at
+SELECT id,
+       title,
+       period,
+       deleted_at
 FROM calendar.schedule
 WHERE id = $1
   AND user_id = $2
@@ -130,5 +179,26 @@ func (q *Queries) GetSchedule(ctx context.Context, arg GetScheduleParams) (GetSc
 		&i.Period,
 		&i.DeletedAt,
 	)
+	return i, err
+}
+
+const getSync = `-- name: GetSync :one
+SELECT id, user_id, sync_token
+FROM calendar.sync
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type GetSyncRow struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	SyncToken string
+}
+
+func (q *Queries) GetSync(ctx context.Context, userID uuid.UUID) (GetSyncRow, error) {
+	row := q.db.QueryRow(ctx, getSync, userID)
+	var i GetSyncRow
+	err := row.Scan(&i.ID, &i.UserID, &i.SyncToken)
 	return i, err
 }
