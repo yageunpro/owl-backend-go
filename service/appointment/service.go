@@ -349,11 +349,12 @@ func (s *service) internalRecommendTimes(ctx context.Context, userIds []uuid.UUI
 			if t.StartTime.In(krTimeZone).Hour() < 13 {
 				amTimes = append(amTimes, t)
 				continue
-			}
-			if t.StartTime.In(krTimeZone).Hour() < 17 {
+			} else if t.StartTime.In(krTimeZone).Hour() < 17 {
 				pmTimes = append(pmTimes, t)
+				continue
+			} else {
+				eveningTimes = append(eveningTimes, t)
 			}
-			eveningTimes = append(eveningTimes, t)
 		}
 	}
 
