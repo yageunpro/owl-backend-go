@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/yageunpro/owl-backend-go/internal/db"
 	"github.com/yageunpro/owl-backend-go/store/internal/query"
+	"time"
 )
 
 type Store interface {
@@ -18,6 +19,7 @@ type Store interface {
 	FindSchedule(ctx context.Context, arg FindScheduleParam) ([]resSchedule, error)
 	GetSyncToken(ctx context.Context, userId uuid.UUID) (string, error)
 	UpdateSyncToken(ctx context.Context, userId uuid.UUID, syncToken string) error
+	GetAllSchedule(ctx context.Context, userIds []uuid.UUID, startTime time.Time, endTime time.Time) ([]resScheduleTime, error)
 }
 
 type store struct {
@@ -155,4 +157,27 @@ func (s *store) UpdateSyncToken(ctx context.Context, userId uuid.UUID, syncToken
 		UserID:    userId,
 		SyncToken: syncToken,
 	})
+}
+
+func (s *store) GetAllSchedule(ctx context.Context, userIds []uuid.UUID, startTime time.Time, endTime time.Time) ([]resScheduleTime, error) {
+	qry := query.New(s.pool)
+	rows, err := qry.GetAllSchedule(ctx, query.GetAllScheduleParams{
+		UserIds:   userIds,
+		StartTime: pgtype.Timestamptz{Time: startTime.UTC(), Valid: true},
+		EndTime:   pgtype.Timestamptz{Time: endTime.UTC(), Valid: true},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]resScheduleTime, len(rows))
+
+	for i := range rows {
+		res[i].Id = rows[i].ID
+		res[i].UserId = rows[i].UserID
+		res[i].StartTime = rows[i].Period.Lower.Time
+		res[i].EndTime = rows[i].Period.Upper.Time
+	}
+
+	return res, nil
 }

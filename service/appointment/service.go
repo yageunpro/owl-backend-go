@@ -1,10 +1,14 @@
 package appointment
 
 import (
+	"cmp"
 	"context"
+	"errors"
 	"github.com/google/uuid"
 	"github.com/yageunpro/owl-backend-go/store"
 	"github.com/yageunpro/owl-backend-go/store/appointment"
+	"slices"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -18,7 +22,7 @@ type Service interface {
 	Share(ctx context.Context) error
 	Join(ctx context.Context, appointmentId, userId uuid.UUID) (*resInfo, error)
 	JoinNonmember(ctx context.Context, arg JoinNonmemberParam) (*resInfo, error)
-	RecommendTime(ctx context.Context, appointmentId uuid.UUID) error
+	RecommendTime(ctx context.Context, appointmentId, userId uuid.UUID) ([]time.Time, error)
 	Confirm(ctx context.Context, appointmentId, userId uuid.UUID, confirmTime time.Time) error
 }
 type service struct {
@@ -209,11 +213,191 @@ func (s *service) JoinNonmember(ctx context.Context, arg JoinNonmemberParam) (*r
 	return s.Info(ctx, param.Id)
 }
 
-func (s *service) RecommendTime(ctx context.Context, appointmentId uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+func (s *service) RecommendTime(ctx context.Context, appointmentId, userId uuid.UUID) ([]time.Time, error) {
+	ap, err := s.store.Appointment.Get(ctx, appointmentId)
+	if err != nil {
+		return nil, err
+	}
+
+	if ap.OrganizerId != userId {
+		return nil, errors.New("only organizer can get recommendations")
+	}
+
+	participantsIds := make([]uuid.UUID, 0)
+	for i := range ap.Participants {
+		participantsIds = append(participantsIds, ap.Participants[i].UserId)
+	}
+
+	if time.Now().UTC().After(ap.Deadline) {
+		return nil, errors.New("appointment deadline exceeded")
+	}
+
+	res, err := s.internalRecommendTimes(ctx, participantsIds, time.Now().UTC(), ap.Deadline)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (s *service) Confirm(ctx context.Context, appointmentId, userId uuid.UUID, confirmTime time.Time) error {
 	return s.store.Appointment.Confirm(ctx, appointmentId, userId, confirmTime)
+}
+
+func (s *service) internalRecommendTimes(ctx context.Context, userIds []uuid.UUID, startTime, endTime time.Time) ([]time.Time, error) {
+	startTime = startTime.Truncate(time.Hour).Add(time.Hour).UTC()
+	endTime = endTime.Truncate(time.Hour).Add(time.Hour).UTC()
+	duration := time.Minute * 30
+
+	out, err := s.store.Calendar.GetAllSchedule(ctx, userIds, startTime, endTime)
+	if err != nil {
+		return nil, err
+	}
+
+	krTimeZone := time.FixedZone("KR", 9*60*60)
+
+	slots := make([]TimeSlot, 0)
+	for startTime.Before(endTime) {
+		if startTime.In(krTimeZone).Hour() < 10 || startTime.In(krTimeZone).Hour() > 19 {
+			startTime = startTime.Add(duration)
+			continue
+		}
+
+		slots = append(slots, TimeSlot{
+			StartTime:       startTime,
+			EndTime:         startTime.Add(duration),
+			OverlapCount:    0,
+			PreferenceScore: 0,
+		})
+		startTime = startTime.Add(duration)
+	}
+
+	for _, userSchedule := range out {
+		userPeriod := TimePeriod{
+			StartTime: userSchedule.StartTime,
+			EndTime:   userSchedule.EndTime,
+		}
+		for i := range slots {
+			slotPeriod := TimePeriod{
+				StartTime: slots[i].StartTime,
+				EndTime:   slots[i].EndTime,
+			}
+			if doTimePeriodsOverlap(userPeriod, slotPeriod) {
+				slots[i].OverlapCount += 1
+			}
+		}
+	}
+
+	sort.Slice(slots, func(i, j int) bool {
+		if slots[i].OverlapCount == slots[j].OverlapCount {
+			return slots[i].StartTime.Before(slots[j].StartTime)
+		}
+		return slots[i].OverlapCount < slots[j].OverlapCount
+	})
+
+	for i := range slots {
+		if i < len(slots)-1 {
+			if slots[i].EndTime == slots[i+1].StartTime {
+				slots[i].PreferenceScore += 1
+			}
+		}
+	}
+
+	mergeIndex := 0
+	mergedSlots := make([]TimeSlot, 0)
+	mergedSlots = append(mergedSlots, slots[0])
+
+	for i := range slots {
+		if i == 0 {
+			continue
+		}
+
+		if i < len(slots)-1 {
+			if mergedSlots[mergeIndex].EndTime == slots[i].StartTime && mergedSlots[mergeIndex].OverlapCount == slots[i].OverlapCount {
+				mergedSlots[mergeIndex].EndTime = slots[i].EndTime
+				mergedSlots[mergeIndex].PreferenceScore += slots[i].PreferenceScore
+			} else {
+				mergedSlots = append(mergedSlots, slots[i])
+				mergeIndex += 1
+			}
+		}
+	}
+
+	keys := make([]int, 0)
+	sortOverlap := make(map[int][]TimeSlot)
+	for _, slot := range mergedSlots {
+		_, ok := sortOverlap[slot.OverlapCount]
+		if !ok {
+			keys = append(keys, slot.OverlapCount)
+			sortOverlap[slot.OverlapCount] = []TimeSlot{slot}
+			continue
+		}
+		sortOverlap[slot.OverlapCount] = append(sortOverlap[slot.OverlapCount], slot)
+	}
+
+	slices.Sort(keys)
+
+	amTimes := make([]TimeSlot, 0)
+	pmTimes := make([]TimeSlot, 0)
+	eveningTimes := make([]TimeSlot, 0)
+	for key := range keys {
+		slices.SortFunc(sortOverlap[key], func(a, b TimeSlot) int {
+			return cmp.Compare(b.PreferenceScore, a.PreferenceScore)
+		})
+
+		for _, t := range sortOverlap[key] {
+			if t.StartTime.In(krTimeZone).Hour() < 13 {
+				amTimes = append(amTimes, t)
+				continue
+			}
+			if t.StartTime.In(krTimeZone).Hour() < 17 {
+				pmTimes = append(pmTimes, t)
+			}
+			eveningTimes = append(eveningTimes, t)
+		}
+	}
+
+	resSlots := make([]TimeSlot, 0)
+	done := 0
+	resIndex := 0
+	for {
+		if done == 3 || len(resSlots) >= 6 {
+			break
+		}
+
+		if resIndex == len(amTimes)-1 {
+			done += 1
+		} else if resIndex < len(amTimes) {
+			resSlots = append(resSlots, amTimes[resIndex])
+		}
+
+		if resIndex == len(pmTimes)-1 {
+			done += 1
+		} else if resIndex < len(pmTimes) {
+			resSlots = append(resSlots, pmTimes[resIndex])
+		}
+
+		if resIndex == len(resSlots)-1 {
+			done += 1
+		} else if resIndex < len(eveningTimes) {
+			resSlots = append(resSlots, eveningTimes[resIndex])
+		}
+
+		resIndex += 1
+	}
+
+	res := make([]time.Time, len(resSlots))
+
+	sort.Slice(resSlots, func(i, j int) bool {
+		if resSlots[i].OverlapCount == resSlots[j].OverlapCount {
+			return resSlots[i].PreferenceScore > resSlots[j].PreferenceScore
+		}
+		return resSlots[i].OverlapCount < resSlots[j].OverlapCount
+	})
+
+	for i := range resSlots {
+		res[i] = resSlots[i].StartTime.In(krTimeZone)
+	}
+
+	return res, nil
 }

@@ -11,3 +11,10 @@ type resSchedule struct {
 	StartTime time.Time
 	EndTime   time.Time
 }
+
+type resScheduleTime struct {
+	Id        uuid.UUID
+	UserId    uuid.UUID
+	StartTime time.Time
+	EndTime   time.Time
+}

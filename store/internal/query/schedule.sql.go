@@ -148,6 +148,46 @@ func (q *Queries) FindSchedule(ctx context.Context, arg FindScheduleParams) ([]F
 	return items, nil
 }
 
+const getAllSchedule = `-- name: GetAllSchedule :many
+SELECT id, user_id, period
+FROM calendar.schedule
+WHERE deleted_at IS NULL
+  AND user_id = ANY ($1::uuid[])
+  AND period && TSTZRANGE($2::timestamptz, $3::timestamptz, '[]')
+`
+
+type GetAllScheduleParams struct {
+	UserIds   []uuid.UUID
+	StartTime pgtype.Timestamptz
+	EndTime   pgtype.Timestamptz
+}
+
+type GetAllScheduleRow struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+	Period pgtype.Range[pgtype.Timestamptz]
+}
+
+func (q *Queries) GetAllSchedule(ctx context.Context, arg GetAllScheduleParams) ([]GetAllScheduleRow, error) {
+	rows, err := q.db.Query(ctx, getAllSchedule, arg.UserIds, arg.StartTime, arg.EndTime)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllScheduleRow
+	for rows.Next() {
+		var i GetAllScheduleRow
+		if err := rows.Scan(&i.ID, &i.UserID, &i.Period); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSchedule = `-- name: GetSchedule :one
 SELECT id,
        title,

@@ -388,8 +388,23 @@ func (h *handler) JoinNonmember(c echo.Context) error {
 }
 
 func (h *handler) RecommendTime(c echo.Context) error {
-	//TODO implement me
-	panic("implement me")
+	userId := jwt.GetUserID(c.Request().Context())
+	if userId == uuid.Nil {
+		return echo.ErrUnauthorized
+	}
+
+	req := new(reqRecommendTime)
+	err := c.Bind(req)
+	if err != nil {
+		return err
+	}
+
+	out, err := h.svc.Appointment.RecommendTime(c.Request().Context(), req.Id, userId)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, out)
 }
 
 func (h *handler) Confirm(c echo.Context) error {

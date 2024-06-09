@@ -47,3 +47,10 @@ FROM calendar.sync
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT 1;
+
+-- name: GetAllSchedule :many
+SELECT id, user_id, period
+FROM calendar.schedule
+WHERE deleted_at IS NULL
+  AND user_id = ANY (@user_ids::uuid[])
+  AND period && TSTZRANGE(@start_time::timestamptz, @end_time::timestamptz, '[]');
