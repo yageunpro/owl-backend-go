@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/yageunpro/owl-backend-go/store"
 	"github.com/yageunpro/owl-backend-go/store/appointment"
+	"github.com/yageunpro/owl-backend-go/store/calendar"
 	"slices"
 	"sort"
 	"strconv"
@@ -241,7 +242,41 @@ func (s *service) RecommendTime(ctx context.Context, appointmentId, userId uuid.
 }
 
 func (s *service) Confirm(ctx context.Context, appointmentId, userId uuid.UUID, confirmTime time.Time) error {
-	return s.store.Appointment.Confirm(ctx, appointmentId, userId, confirmTime)
+	err := s.store.Appointment.Confirm(ctx, appointmentId, userId, confirmTime)
+	if err != nil {
+		return err
+	}
+
+	info, err := s.Info(ctx, appointmentId)
+	if err != nil {
+		return err
+	}
+
+	err = s.store.Calendar.CreateSchedule(ctx, calendar.CreateScheduleParam{
+		Id:        uuid.Must(uuid.NewV7()),
+		UserId:    userId,
+		Title:     info.Title,
+		StartTime: confirmTime,
+		EndTime:   confirmTime.Add(3 * time.Hour),
+	})
+	if err != nil {
+		return err
+	}
+
+	for i := range info.Participants {
+		err = s.store.Calendar.CreateSchedule(ctx, calendar.CreateScheduleParam{
+			Id:        uuid.Must(uuid.NewV7()),
+			UserId:    info.Participants[i].UserId,
+			Title:     info.Title,
+			StartTime: confirmTime,
+			EndTime:   confirmTime.Add(3 * time.Hour),
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *service) internalRecommendTimes(ctx context.Context, userIds []uuid.UUID, startTime, endTime time.Time) ([]time.Time, error) {
